@@ -4,7 +4,8 @@ import { User,
     Sport,
     Post,
     Comment,
-    Like } from '../models/index.js';
+    Like,
+    Follows } from '../models/index.js';
 
 import faker from 'faker';
 
@@ -15,8 +16,10 @@ const seedDatabase = async () => {
     await Post.deleteMany({});
     await Comment.deleteMany({});
     await Like.deleteMany({});
+    await Follows.deleteMany({});
 
     const totalUsers = 20;
+    const totalFollows = 40;
     const totalSports = 10;
     const totalEvents = 5;
     const totalPosts = 40;
@@ -29,6 +32,7 @@ const seedDatabase = async () => {
     const posts = [];
     const comments = [];
     const likes = [];
+    const follows = [];
     
     for (let i = 0; i < totalUsers; i++) {
         const user = new User({
@@ -98,12 +102,27 @@ const seedDatabase = async () => {
         likes.push(like);
     }
 
+    for (let i = 0; i < totalFollows; i++) {
+        const randomUserIndex = Math.floor(Math.random() * totalUsers);
+        const randomUserIndex2 = Math.floor(Math.random() * totalUsers);
+        if(randomUserIndex === randomUserIndex2) {
+            i--;
+            continue;
+        }
+        const follow = new Follows({
+            follower: users[randomUserIndex]._id,
+            followee: users[randomUserIndex2]._id
+        });
+        follows.push(follow);
+    }
+
     await User.insertMany(users);
     await Sport.insertMany(sports);
     await Event.insertMany(events);
     await Post.insertMany(posts);
     await Comment.insertMany(comments);
     await Like.insertMany(likes);
+    await Follows.insertMany(follows);
     
     console.log('Seeded the database'); 
 };
