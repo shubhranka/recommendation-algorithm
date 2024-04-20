@@ -8,6 +8,7 @@ import { User,
     Follows } from '../models/index.js';
 
 import faker from 'faker';
+import bcrypt from 'bcrypt';
 
 // Random sports
 const randomSports = [
@@ -49,10 +50,13 @@ const seedDatabase = async () => {
     const follows = [];
     
     for (let i = 0; i < totalUsers; i++) {
+        const  password = faker.internet.password();
+        const hashedPassword = bcrypt.hashSync(password, 10);
         const user = new User({
             username: faker.internet.userName(),
-            password: faker.internet.password()
+            password: hashedPassword
         });
+        user.password = password;
         users.push(user);
     }
 
@@ -138,7 +142,7 @@ const seedDatabase = async () => {
     await Like.insertMany(likes);
     await Follows.insertMany(follows);
     
-    console.log('Seeded the database'); 
+    return users;
 };
 
 export default seedDatabase;
