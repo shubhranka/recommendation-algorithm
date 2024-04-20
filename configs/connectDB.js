@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const dbConfigs = {}
 
 
-const connectDB = async () => {
+export const connectDB = async () => {
     console.log('Trying to connect to the database');
     const intervalLog = setInterval(() => {
         process.stdout.write('.');
