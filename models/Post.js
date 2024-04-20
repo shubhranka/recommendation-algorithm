@@ -31,8 +31,7 @@ const postSchema = new mongoose.Schema({
     },
     event: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Event',
-        required: true
+        ref: 'Event'
     },
     popularityScore: {
         type: Number,
