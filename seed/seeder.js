@@ -9,6 +9,20 @@ import { User,
 
 import faker from 'faker';
 
+// Random sports
+const randomSports = [
+    'Soccer',
+    'Basketball',
+    'Football',
+    'Baseball',
+    'Volleyball',
+    'Tennis',
+    'Golf',
+    'Hockey',
+    'Boxing',
+    'MMA'
+]
+
 const seedDatabase = async () => {
     await User.deleteMany({});
     await Event.deleteMany({});
@@ -20,7 +34,7 @@ const seedDatabase = async () => {
 
     const totalUsers = 20;
     const totalFollows = 40;
-    const totalSports = 10;
+    const totalSports = randomSports.length;
     const totalEvents = 5;
     const totalPosts = 40;
     const totalComments = 70;
@@ -44,7 +58,7 @@ const seedDatabase = async () => {
 
     for (let i = 0; i < totalSports; i++) {
         const sport = new Sport({
-            name: faker.random.word()
+            name: randomSports[i]
         });
         sports.push(sport);
     }
@@ -52,7 +66,7 @@ const seedDatabase = async () => {
     for (let i = 0; i < totalEvents; i++) {
         const randomSportIndex = Math.floor(Math.random() * totalSports);
         const event = new Event({
-            name: faker.random.word(),
+            name: faker.random.words(),
             sport: sports[randomSportIndex]._id
         });
         events.push(event);

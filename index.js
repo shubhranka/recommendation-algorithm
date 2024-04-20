@@ -3,5 +3,6 @@ import { connect } from 'mongoose';
 await connect(process.env.MONGODB_CONNECTION_STRING)
 console.log('Connected to the database');
 
-import seedDatabase from './seed/seeder.js';
-await seedDatabase();
+// import seedDatabase from './seed/seeder.js';
+// await seedDatabase();
+
