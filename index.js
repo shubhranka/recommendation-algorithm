@@ -12,7 +12,6 @@ await connectDB();
 app.use("/seed", seedRouter);
 
 const server = app.listen(3000, () => {
-
     const ip = IP.address();
     const port = server.address().port;
     console.log(`Server is running on - http://${ip}:${port}`);
