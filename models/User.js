@@ -9,7 +9,13 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    interests: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Sport'
+        }
+    ]
 });
 
 export default mongoose.model('User', userSchema);

@@ -1,5 +1,5 @@
 import express from 'express';
-import { User } from '../models';
+import { User } from '../models/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 const router = express.Router();
@@ -8,10 +8,10 @@ router.post('/auth', async (req, res) => {
     const { username, password } = req.body;
 
     const user = await User.findOne({
-        where: {
-            username,
+            username: username
         }
-    });
+    );
+
     if (!user) {
         return res.status(401).json({ message: 'Invalid username or password' });
     }
@@ -26,3 +26,5 @@ router.post('/auth', async (req, res) => {
     });
     return res.json({ token });
 });
+
+export default router;

@@ -1,4 +1,8 @@
 import mongoose from 'mongoose';
+
+const dbConfigs = {}
+
+
 const connectDB = async () => {
     console.log('Trying to connect to the database');
     const intervalLog = setInterval(() => {
@@ -9,4 +13,6 @@ const connectDB = async () => {
     console.log('OK \nConnected to the database');
 }
 
-export default connectDB;
+dbConfigs.connectDB = connectDB
+
+export default dbConfigs;

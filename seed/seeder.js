@@ -48,6 +48,7 @@ const seedDatabase = async () => {
     const comments = [];
     const likes = [];
     const follows = [];
+    const decrptedUsers = [];
     
     for (let i = 0; i < totalUsers; i++) {
         const  password = faker.internet.password();
@@ -56,8 +57,12 @@ const seedDatabase = async () => {
             username: faker.internet.userName(),
             password: hashedPassword
         });
-        user.password = password;
         users.push(user);
+        decrptedUsers.push({
+            username: user.username,
+            password: password
+        });
+
     }
 
     for (let i = 0; i < totalSports; i++) {
@@ -142,7 +147,7 @@ const seedDatabase = async () => {
     await Like.insertMany(likes);
     await Follows.insertMany(follows);
     
-    return users;
+    return decrptedUsers;
 };
 
 export default seedDatabase;
