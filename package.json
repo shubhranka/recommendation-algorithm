@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --require ./test/bootstrap.js \"test/**/*.test.js\"",
-    "dev": "nodemon --env-file=.env index.js"
+    "dev": "nodemon --env-file=.env index.js",
+    "start": "node index.js"
   },
   "jest": {
     "transform": {},
