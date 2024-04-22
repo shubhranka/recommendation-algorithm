@@ -4,37 +4,36 @@ import Follows from "../models/Follows.js";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 import Discovered from "../models/Discovered.js";
-import mongoose from 'mongoose';
+import mongoose, { get } from 'mongoose';
+import { client as redisClient }  from "../configs/connectRedis.js";
+import PostData from "../models/PostData.js";
 
 export default {
     getPosts : async (req,res) => {
         try{
+            const { user_id } = req;
+            const limit = req.query.limit || 10;
+            const postWithoutPostData = await getPostWithoutPostData(user_id,limit);
+            const seventyPercentPopularityScore = await redisClient.get("seventyPercentPopularityScore");
+            // Check if postId is in redis
+            const posts = postWithoutPostData.map(post=>{
+              const postDataId = post.postData;
+              if(post.popularityScore >= seventyPercentPopularityScore && redisClient.exists(JSON.stringify(postDataId))){
+                redisClient.get(JSON.stringify(postDataId)).then((postData)=>{
+                  post.postData = JSON.parse(postData);
+                })
+              }else{
+                PostData.findById(postDataId).then(async (postData)=>{
+                  if(post.popularityScore >= seventyPercentPopularityScore)
+                    redisClient.set(JSON.stringify(postDataId),JSON.stringify(postData));
+                  post.postData = postData;
+                })
+              }
+              return post;
+            })
 
-        const { user_id } = req;
-
-        const userObjectId = new mongoose.Types.ObjectId(user_id);
-
-        const likedSportsOfUser = await getAggregatedSports([userObjectId],Like);
-        const commentedSportsOfUser = await getAggregatedSports([userObjectId],Comment);
-
-        const followedUsersModels = await Follows.find({follower: userObjectId});
-        const followedUsers = followedUsersModels.map(follow => follow.followee);
-
-        const likedSportsOfFollowedUsers = await getAggregatedSports(followedUsers,Like);
-        const commentedSportsOfFollowedUsers = await getAggregatedSports(followedUsers,Comment);
-
-        const likedSports = [...likedSportsOfUser, ...likedSportsOfFollowedUsers];
-        const commentedSports = [...commentedSportsOfUser, ...commentedSportsOfFollowedUsers];
-
-        const interestsModel = await User.findById(userObjectId)
-        const interests = interestsModel.interests;
-        const discovered = await Discovered.find({user: userObjectId})
-        const viewedPosts = discovered.map(discovered => discovered.post);
-        const limit = req.query.limit || 10;
-
-        const recommendation = await getRecommendedPost(followedUsers, likedSports, commentedSports, interests, viewedPosts, limit,likedSportsOfUser,commentedSportsOfUser);
-        await Discovered.insertMany(recommendation.map(post => ({user: userObjectId, post: post._id})));
-        return res.json(recommendation);
+            
+            return res.json(posts);
         }catch(err){
             console.log(err);
             return res.status(500).json({message: 'Internal server error'});
@@ -42,7 +41,49 @@ export default {
     }
 }
 
-const getRecommendedPost = async (followedUsers, likedSports, commentedSports, interests, viewedPosts,limit,userLikedSports,userCommentedSports) => {
+const getPostWithoutPostData = async (user_id,limit) => {
+
+          
+
+          // Convert user_id to ObjectId
+          const userObjectId = new mongoose.Types.ObjectId(user_id);
+          
+          // Get liked sports of user
+          const likedSportsOfUser = await getAggregatedSports([userObjectId],Like);
+
+          // Get commented sports of user
+          const commentedSportsOfUser = await getAggregatedSports([userObjectId],Comment);
+
+          // Get followed users
+          const followedUsersModels = await Follows.find({follower: userObjectId});
+          const followedUsers = followedUsersModels.map(follow => follow.followee);
+
+          // Get liked sports of followed users
+          const likedSportsOfFollowedUsers = await getAggregatedSports(followedUsers,Like);
+          
+          // Get commented sports of followed users
+          const commentedSportsOfFollowedUsers = await getAggregatedSports(followedUsers,Comment);
+
+          // Combine liked sports and commented sports of user and followed users
+          const likedSports = [...likedSportsOfUser, ...likedSportsOfFollowedUsers];
+          const commentedSports = [...commentedSportsOfUser, ...commentedSportsOfFollowedUsers];
+
+          // Get interests of user
+          const interestsModel = await User.findById(userObjectId)
+          const interests = interestsModel.interests;
+
+          // Get viewed posts of user
+          const discovered = await Discovered.find({user: userObjectId})
+          const viewedPosts = discovered.map(discovered => discovered.post);
+          
+
+          const recommendation = await getRecommendedPostWithoutPostData(followedUsers, likedSports, commentedSports, interests, viewedPosts, limit,likedSportsOfUser,commentedSportsOfUser);
+          await Discovered.insertMany(recommendation.map(post => ({user: userObjectId, post: post._id})));
+
+          return recommendation;
+    }
+
+const getRecommendedPostWithoutPostData = async (followedUsers, likedSports, commentedSports, interests, viewedPosts,limit,userLikedSports,userCommentedSports) => {
     const posts = await Post.aggregate([
         {
           $match: {
@@ -50,7 +91,7 @@ const getRecommendedPost = async (followedUsers, likedSports, commentedSports, i
               { user: { $in: followedUsers } },
               { sport: { $in: [...likedSports, ...commentedSports, ...interests] } },
             ],
-            _id: { $nin: viewedPosts }
+            _id: {$nin: viewedPosts}
           }
         },
         {
@@ -69,7 +110,7 @@ const getRecommendedPost = async (followedUsers, likedSports, commentedSports, i
           }
         },
         { $sort: { customPopularityScore: -1 } }, // Sort by customPopularityScore in descending order
-        { $limit: limit }
+        { $limit: limit },
       ])
     return posts;
 }

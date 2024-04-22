@@ -37,6 +37,11 @@ const postSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    postData: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'PostData',
+        required: true
+    }
 });
 
 export default mongoose.model('Post', postSchema);

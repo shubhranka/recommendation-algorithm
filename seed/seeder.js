@@ -5,7 +5,8 @@ import { User,
     Post,
     Comment,
     Like,
-    Follows } from '../models/index.js';
+    Follows,
+    PostData } from '../models/index.js';
 
 import faker from 'faker';
 import bcrypt from 'bcrypt';
@@ -22,6 +23,14 @@ const randomSports = [
     'Hockey',
     'Boxing',
     'MMA'
+]
+
+// Random Images URL
+const randomImagesURL = [
+    'https://images.unsplash.com/photo-1472457897821-70d3819a0e24?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://plus.unsplash.com/premium_photo-1681843294664-e15581e2d41f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://images.unsplash.com/photo-1541704328070-20bf4601ae3e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+
 ]
 
 const seedDatabase = async () => {
@@ -88,12 +97,18 @@ const seedDatabase = async () => {
         const sport = sports[randomSportIndex];
         const eventForSport = events.filter(event => event.sport.equals(sport._id));
         const randomEventIndex = Math.floor(Math.random() * (eventForSport.length-1));
+        const postData = new PostData({
+            image: randomImagesURL[Math.floor(Math.random() * randomImagesURL.length)],
+            description: faker.random.words()
+        });
+        await postData.save();
 
         const post = new Post({
             title: faker.random.words(),
             user: users[randomUserIndex]._id,
             sport: sports[randomSportIndex]._id,
             event: eventForSport[randomEventIndex]?._id,
+            postData
         });
         posts.push(post);
     }
